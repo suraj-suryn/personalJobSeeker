@@ -163,18 +163,18 @@ if "!LLM_CHOICE!"=="3" (
     set /p GEMINI_KEY="Gemini API key: "
 )
 
-:: Write values into .env using PowerShell (handles special chars safely)
-powershell -NoProfile -Command ^
-  "(Get-Content '.env') ^
-  -replace 'ADMIN_EMAIL=.*',           'ADMIN_EMAIL=!ADMIN_EMAIL!' ^
-  -replace 'ADMIN_PASSWORD=.*',        'ADMIN_PASSWORD=!ADMIN_PASSWORD!' ^
-  -replace 'POSTGRES_PASSWORD=.*',     'POSTGRES_PASSWORD=!DB_PASS!' ^
-  -replace 'DATABASE_URL=.*',          'DATABASE_URL=postgresql+asyncpg://jobseeker:!DB_PASS!@postgres:5432/jobseeker' ^
-  -replace 'APP_SECRET_KEY=.*',        'APP_SECRET_KEY=!APP_SECRET!' ^
-  -replace 'JWT_SECRET_KEY=.*',        'JWT_SECRET_KEY=!JWT_SECRET!' ^
-  -replace 'GROQ_API_KEY=.*',          'GROQ_API_KEY=!GROQ_KEY!' ^
-  -replace 'GEMINI_API_KEY=.*',        'GEMINI_API_KEY=!GEMINI_KEY!' ^
-  | Set-Content '.env'"
+:: Pass values via environment variables so PowerShell receives them safely
+:: (avoids CMD ^ line-continuation issues inside quoted PowerShell strings)
+set "_ADMIN_EMAIL=!ADMIN_EMAIL!"
+set "_ADMIN_PASSWORD=!ADMIN_PASSWORD!"
+set "_DB_PASS=!DB_PASS!"
+set "_APP_SECRET=!APP_SECRET!"
+set "_JWT_SECRET=!JWT_SECRET!"
+set "_GROQ_KEY=!GROQ_KEY!"
+set "_GEMINI_KEY=!GEMINI_KEY!"
+
+:: Write values into .env using a single-line PowerShell command
+powershell -NoProfile -Command "$c=gc '.env'; $c=$c -replace 'ADMIN_EMAIL=.*',('ADMIN_EMAIL='+$env:_ADMIN_EMAIL); $c=$c -replace 'ADMIN_PASSWORD=.*',('ADMIN_PASSWORD='+$env:_ADMIN_PASSWORD); $c=$c -replace 'POSTGRES_PASSWORD=.*',('POSTGRES_PASSWORD='+$env:_DB_PASS); $c=$c -replace 'DATABASE_URL=.*',('DATABASE_URL=postgresql+asyncpg://jobseeker:'+$env:_DB_PASS+'@postgres:5432/jobseeker'); $c=$c -replace 'APP_SECRET_KEY=.*',('APP_SECRET_KEY='+$env:_APP_SECRET); $c=$c -replace 'JWT_SECRET_KEY=.*',('JWT_SECRET_KEY='+$env:_JWT_SECRET); $c=$c -replace 'GROQ_API_KEY=.*',('GROQ_API_KEY='+$env:_GROQ_KEY); $c=$c -replace 'GEMINI_API_KEY=.*',('GEMINI_API_KEY='+$env:_GEMINI_KEY); $c|sc '.env'"
 
 echo  [OK] .env configured.
 
