@@ -52,6 +52,23 @@ if %ERRORLEVEL% neq 0 (
 
 echo  [OK] Docker and Git found.
 
+:: Verify Docker daemon is actually running (not just installed)
+docker info >nul 2>&1
+if %ERRORLEVEL% neq 0 (
+    color 0C
+    echo.
+    echo  ERROR: Docker Desktop is installed but the engine is NOT running.
+    echo.
+    echo  Please:
+    echo    1. Open Docker Desktop from the Start Menu or system tray
+    echo    2. Wait until the bottom-left shows "Engine running" (whale icon)
+    echo    3. Then re-run this script
+    echo.
+    pause
+    exit /b 1
+)
+echo  [OK] Docker engine is running.
+
 :: ── Step 1: Choose install directory ──────────────────────────────────────
 
 echo.
