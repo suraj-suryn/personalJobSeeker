@@ -52,21 +52,53 @@ if %ERRORLEVEL% neq 0 (
 
 echo  [OK] Docker and Git found.
 
-:: Verify Docker daemon is actually running (not just installed)
+:: Verify Docker daemon is actually running — if not, auto-start it and wait
 docker info >nul 2>&1
 if %ERRORLEVEL% neq 0 (
-    color 0C
     echo.
-    echo  ERROR: Docker Desktop is installed but the engine is NOT running.
-    echo.
-    echo  Please:
-    echo    1. Open Docker Desktop from the Start Menu or system tray
-    echo    2. Wait until the bottom-left shows "Engine running" (whale icon)
-    echo    3. Then re-run this script
-    echo.
-    pause
-    exit /b 1
+    echo  Docker engine is not running. Attempting to start Docker Desktop...
+
+    :: Try common install locations
+    set "DD_EXE="
+    if exist "C:\Program Files\Docker\Docker\Docker Desktop.exe" (
+        set "DD_EXE=C:\Program Files\Docker\Docker\Docker Desktop.exe"
+    )
+    if exist "%LOCALAPPDATA%\Docker\Docker Desktop.exe" (
+        set "DD_EXE=%LOCALAPPDATA%\Docker\Docker Desktop.exe"
+    )
+
+    if defined DD_EXE (
+        start "" "!DD_EXE!"
+        echo  Waiting for Docker engine to start (up to 90 seconds^)...
+        set /a DD_WAIT=0
+        :wait_docker
+        timeout /t 5 /nobreak >nul
+        docker info >nul 2>&1
+        if %ERRORLEVEL% equ 0 goto :docker_ready
+        set /a DD_WAIT+=5
+        echo  Still waiting... (!DD_WAIT!s / 90s^)
+        if !DD_WAIT! lss 90 goto :wait_docker
+        :: Timed out
+        color 0C
+        echo.
+        echo  ERROR: Docker Desktop did not start in time.
+        echo  Please open Docker Desktop manually, wait for "Engine running",
+        echo  then re-run this script.
+        echo.
+        pause
+        exit /b 1
+    ) else (
+        color 0C
+        echo.
+        echo  ERROR: Cannot find Docker Desktop. Please install it from:
+        echo    https://www.docker.com/products/docker-desktop
+        echo  Then re-run this script.
+        echo.
+        pause
+        exit /b 1
+    )
 )
+:docker_ready
 echo  [OK] Docker engine is running.
 
 :: ── Step 1: Choose install directory ──────────────────────────────────────
