@@ -8,8 +8,8 @@ title PersonalJobSeeker — Deployment Script
 :: ============================================================
 
 :: Set up log file (written alongside this script)
-set "LOG_FILE=%~dp0deploy_log_%date:~10,4%-%date:~4,2%-%date:~7,2%_%time:~0,2%%time:~3,2%%time:~6,2%.txt"
-set "LOG_FILE=!LOG_FILE: =0!"
+for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /value') do set _DT=%%I
+set "LOG_FILE=%~dp0deploy_log_%_DT:~0,8%_%_DT:~8,6%.txt"
 echo Deploy log started: %date% %time% > "!LOG_FILE!"
 echo. >> "!LOG_FILE!"
 
@@ -246,7 +246,8 @@ echo [5/8] Building Docker images (this may take 5-15 minutes on first run)...
 echo       You will see build output below. Full output also saved to log.
 echo.
 call :log "[5/8] Running docker compose build"
-docker compose build 2>&1 | tee -a "!LOG_FILE!"
+set "_LOG=!LOG_FILE!"
+powershell -NoProfile -Command "docker compose build 2>&1 | Tee-Object -Append -FilePath $env:_LOG; exit $LASTEXITCODE"
 if !ERRORLEVEL! neq 0 (
     color 0C
     echo.
@@ -269,7 +270,8 @@ echo.
 echo [6/8] Starting all services...
 echo.
 call :log "[6/8] Running docker compose up -d"
-docker compose up -d 2>&1 | tee -a "!LOG_FILE!"
+set "_LOG=!LOG_FILE!"
+powershell -NoProfile -Command "docker compose up -d 2>&1 | Tee-Object -Append -FilePath $env:_LOG; exit $LASTEXITCODE"
 if !ERRORLEVEL! neq 0 (
     color 0C
     echo.
