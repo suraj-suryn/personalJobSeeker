@@ -25,7 +25,16 @@ echo  ================================================
 echo  Log file: !LOG_FILE!
 echo.
 
-:: ── Step 0: Check for Admin / Docker availability ─────────────────────────
+:: ── Step 0: Ensure Docker bin is on PATH (survives fresh terminal) ─────────
+set "DD_BIN=C:\Program Files\Docker\Docker\resources\bin"
+echo %PATH% | find /i "Docker\resources\bin" >nul 2>&1
+if %ERRORLEVEL% neq 0 (
+    if exist "!DD_BIN!\docker.exe" (
+        set "PATH=!PATH!;!DD_BIN!"
+    )
+)
+
+:: ── Step 1: Check prerequisites ────────────────────────────────────────────
 
 echo [1/8] Checking prerequisites...
 
