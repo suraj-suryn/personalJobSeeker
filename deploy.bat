@@ -7,9 +7,9 @@ title PersonalJobSeeker — Deployment Script
 ::  Run this file on any Windows machine to deploy the app.
 :: ============================================================
 
-:: Set up log file (written alongside this script)
-for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /value') do set _DT=%%I
-set "LOG_FILE=%~dp0deploy_log_%_DT:~0,8%_%_DT:~8,6%.txt"
+:: Set up log file — use PowerShell for timestamp (wmic removed in Win11)
+for /f "delims=" %%T in ('powershell -NoProfile -Command "Get-Date -Format yyyyMMdd_HHmmss"') do set "_DT=%%T"
+set "LOG_FILE=%~dp0deploy_log_%_DT%.txt"
 echo Deploy log started: %date% %time% > "!LOG_FILE!"
 echo. >> "!LOG_FILE!"
 
@@ -27,11 +27,9 @@ echo.
 
 :: ── Step 0: Ensure Docker bin is on PATH (survives fresh terminal) ─────────
 set "DD_BIN=C:\Program Files\Docker\Docker\resources\bin"
-echo %PATH% | find /i "Docker\resources\bin" >nul 2>&1
+where docker >nul 2>&1
 if %ERRORLEVEL% neq 0 (
-    if exist "!DD_BIN!\docker.exe" (
-        set "PATH=!PATH!;!DD_BIN!"
-    )
+    if exist "!DD_BIN!\docker.exe" set "PATH=!PATH!;!DD_BIN!"
 )
 
 :: ── Step 1: Check prerequisites ────────────────────────────────────────────
