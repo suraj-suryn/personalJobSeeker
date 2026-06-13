@@ -7,11 +7,22 @@ title PersonalJobSeeker — Deployment Script
 ::  Run this file on any Windows machine to deploy the app.
 :: ============================================================
 
+:: Set up log file (written alongside this script)
+set "LOG_FILE=%~dp0deploy_log_%date:~10,4%-%date:~4,2%-%date:~7,2%_%time:~0,2%%time:~3,2%%time:~6,2%.txt"
+set "LOG_FILE=!LOG_FILE: =0!"
+echo Deploy log started: %date% %time% > "!LOG_FILE!"
+echo. >> "!LOG_FILE!"
+
+:: Helper: echo to screen AND log
+call :log "PersonalJobSeeker Automated Deployment"
+call :log "Log file: !LOG_FILE!"
+
 color 0A
 echo.
 echo  ================================================
 echo   PersonalJobSeeker ^— Automated Deployment
 echo  ================================================
+echo  Log file: !LOG_FILE!
 echo.
 
 :: ── Step 0: Check for Admin / Docker availability ─────────────────────────
@@ -232,36 +243,41 @@ echo  [OK] .env configured.
 :build_images
 echo.
 echo [5/8] Building Docker images (this may take 5-15 minutes on first run)...
-echo       You will see build output below.
+echo       You will see build output below. Full output also saved to log.
 echo.
-
-docker compose build
-if %ERRORLEVEL% neq 0 (
+call :log "[5/8] Running docker compose build"
+docker compose build 2>&1 | tee -a "!LOG_FILE!"
+if !ERRORLEVEL! neq 0 (
     color 0C
     echo.
     echo  ERROR: Docker build failed.
     echo  Check the output above for details.
     echo  Common causes: no internet, Docker Desktop not running.
+    echo  Full log: !LOG_FILE!
+    call :log "ERROR: docker compose build failed"
     echo.
     pause
     exit /b 1
 )
 echo.
 echo  [OK] Images built.
+call :log "[OK] docker compose build succeeded"
 
 :: ── Step 5: Start services ────────────────────────────────────────────────
 
 echo.
 echo [6/8] Starting all services...
 echo.
-
-docker compose up -d
-if %ERRORLEVEL% neq 0 (
+call :log "[6/8] Running docker compose up -d"
+docker compose up -d 2>&1 | tee -a "!LOG_FILE!"
+if !ERRORLEVEL! neq 0 (
     color 0C
     echo.
     echo  ERROR: Failed to start services.
     echo  Run: docker compose logs
     echo  to see what went wrong.
+    echo  Full log: !LOG_FILE!
+    call :log "ERROR: docker compose up failed"
     echo.
     pause
     exit /b 1
@@ -374,5 +390,15 @@ echo  Two helper files created in !INSTALL_DIR!:
 echo    START_APP.bat  ^— start the app
 echo    STOP_APP.bat   ^— stop the app
 echo.
+call :log "Deployment completed successfully."
+call :log "Log saved to: !LOG_FILE!"
+echo  Full deploy log: !LOG_FILE!
+echo.
 pause
 endlocal
+goto :eof
+
+:: ── Subroutine: write message to log file ────────────────────────────────
+:log
+echo [%date% %time%] %~1 >> "!LOG_FILE!"
+goto :eof

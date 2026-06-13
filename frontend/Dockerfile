@@ -5,8 +5,7 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package.json package-lock.json* ./
-# Use npm install so build works whether or not a lock file is present
-RUN npm install --prefer-offline || npm install
+RUN npm install --legacy-peer-deps
 
 # Build the application
 FROM base AS builder
