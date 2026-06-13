@@ -1,0 +1,68 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg
+pip-log.txt
+
+# Secrets — NEVER commit
+.env
+secrets/
+*.pem
+*.key
+*.cert
+*.p12
+
+# Node
+node_modules/
+.next/
+out/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+
+# Data volumes (Docker bind mounts)
+docker/postgres/data/
+backend/uploads/
+backend/generated/
+data/
+
+# IDE
+.vscode/settings.json
+.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Alembic compiled
+backend/alembic/versions/*.pyc
+
+# Coverage
+.coverage
+coverage.xml
+htmlcov/
+
+# Playwright browsers (installed via playwright install)
+backend/.playwright/
