@@ -175,7 +175,12 @@ echo.
 
 if exist ".env" (
     set /p ENV_CHOICE="A .env file already exists. Reconfigure it? (y/n): "
-    if /i "!ENV_CHOICE!" neq "y" goto :build_images
+    if /i "!ENV_CHOICE!" neq "y" (
+        :: Read LLM_PROVIDER from existing .env so Ollama model step works
+        for /f "tokens=2 delims==" %%V in ('findstr /i "^LLM_PROVIDER=" .env') do set LLM_PROVIDER=%%V
+        if "!LLM_PROVIDER!"=="ollama" (set LLM_CHOICE=1) else (set LLM_CHOICE=2)
+        goto :build_images
+    )
 )
 
 copy ".env.example" ".env" >nul
