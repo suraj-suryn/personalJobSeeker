@@ -175,12 +175,7 @@ echo.
 
 if exist ".env" (
     set /p ENV_CHOICE="A .env file already exists. Reconfigure it? (y/n): "
-    if /i "!ENV_CHOICE!" neq "y" (
-        :: Read LLM_PROVIDER from existing .env so Ollama model step works
-        for /f "tokens=2 delims==" %%V in ('findstr /i "^LLM_PROVIDER=" .env') do set LLM_PROVIDER=%%V
-        if "!LLM_PROVIDER!"=="ollama" (set LLM_CHOICE=1) else (set LLM_CHOICE=2)
-        goto :build_images
-    )
+    if /i "!ENV_CHOICE!" neq "y" goto :build_images
 )
 
 copy ".env.example" ".env" >nul
@@ -339,6 +334,13 @@ docker compose exec -T backend python -m app.utils.seed
 echo  [OK] Seed data created.
 
 :: ── Step 7: Pull Ollama models (if selected) ──────────────────────────────
+
+:: Detect LLM_CHOICE if not set (when .env reconfigure was skipped)
+if not "!LLM_CHOICE!"=="" goto :do_llm_step
+set LLM_CHOICE=2
+for /f "tokens=2 delims==" %%P in ('findstr /i "^LLM_PROVIDER=" ".env" 2^>nul') do set "LLM_PROVIDER=%%P"
+if /i "!LLM_PROVIDER:~0,6!"=="ollama" set LLM_CHOICE=1
+:do_llm_step
 
 if "!LLM_CHOICE!"=="1" (
     echo.
