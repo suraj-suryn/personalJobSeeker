@@ -87,21 +87,22 @@ if %ERRORLEVEL% neq 0 (
 
     if defined DD_EXE (
         start "" "!DD_EXE!"
-        echo  Waiting for Docker engine to start (up to 90 seconds^)...
+        echo  Waiting for Docker engine to start (up to 180 seconds^)...
         set /a DD_WAIT=0
         :wait_docker
         timeout /t 5 /nobreak >nul
-        docker info >nul 2>&1
+        :: Use PowerShell job with 5s timeout so docker info never hangs the loop
+        powershell -NoProfile -Command "$j=Start-Job{docker info};if(Wait-Job $j -Timeout 5){$r=Receive-Job $j;Remove-Job $j;exit 0}else{Stop-Job $j;Remove-Job $j;exit 1}" >nul 2>&1
         if %ERRORLEVEL% equ 0 goto :docker_ready
-        set /a DD_WAIT+=5
-        echo  Still waiting... (!DD_WAIT!s / 90s^)
-        if !DD_WAIT! lss 90 goto :wait_docker
+        set /a DD_WAIT+=10
+        echo  Still waiting... (!DD_WAIT!s / 180s^)
+        if !DD_WAIT! lss 180 goto :wait_docker
         :: Timed out
         color 0C
         echo.
-        echo  ERROR: Docker Desktop did not start in time.
-        echo  Please open Docker Desktop manually, wait for "Engine running",
-        echo  then re-run this script.
+        echo  ERROR: Docker Desktop did not start in 180 seconds.
+        echo  Please open Docker Desktop manually, wait for the whale icon
+        echo  to show "Engine running", then re-run this script.
         echo.
         pause
         exit /b 1
