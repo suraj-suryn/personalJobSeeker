@@ -387,19 +387,23 @@ set /p OPEN_BROWSER="Open http://localhost in browser now? (y/n) [y]: "
 if "!OPEN_BROWSER!"=="" set OPEN_BROWSER=y
 if /i "!OPEN_BROWSER!"=="y" start http://localhost
 
-:: Create a shortcut batch file for daily use
-echo @echo off > "!INSTALL_DIR!\START_APP.bat"
-echo cd /d "!INSTALL_DIR!" >> "!INSTALL_DIR!\START_APP.bat"
-echo docker compose up -d >> "!INSTALL_DIR!\START_APP.bat"
-echo echo App started at http://localhost >> "!INSTALL_DIR!\START_APP.bat"
-echo start http://localhost >> "!INSTALL_DIR!\START_APP.bat"
-echo pause >> "!INSTALL_DIR!\START_APP.bat"
+:: Create helper batch files for daily use
+(
+    echo @echo off
+    echo cd /d "!INSTALL_DIR!"
+    echo docker compose up -d
+    echo echo App started at http://localhost
+    echo start http://localhost
+    echo pause
+) > "!INSTALL_DIR!\START_APP.bat"
 
-echo @echo off > "!INSTALL_DIR!\STOP_APP.bat"
-echo cd /d "!INSTALL_DIR!" >> "!INSTALL_DIR!\STOP_APP.bat"
-echo docker compose down >> "!INSTALL_DIR!\STOP_APP.bat"
-echo echo App stopped. >> "!INSTALL_DIR!\STOP_APP.bat"
-echo pause >> "!INSTALL_DIR!\STOP_APP.bat"
+(
+    echo @echo off
+    echo cd /d "!INSTALL_DIR!"
+    echo docker compose down
+    echo echo App stopped.
+    echo pause
+) > "!INSTALL_DIR!\STOP_APP.bat"
 
 echo  Two helper files created in !INSTALL_DIR!:
 echo    START_APP.bat  ^— start the app
